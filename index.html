@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>價格協商模擬器 Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c5aa0, #1e3c72);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            min-height: 80vh;
+        }
+        
+        .setup-panel {
+            width: 30%;
+            background: #f8f9fa;
+            padding: 25px;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+        }
+        
+        .simulation-panel {
+            width: 50%;
+            padding: 25px;
+        }
+        
+        .analytics-panel {
+            width: 20%;
+            background: #f1f3f4;
+            padding: 20px;
+            border-left: 1px solid #e9ecef;
+            overflow-y: auto;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section h3 {
+            color: #2c5aa0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #2c5aa0;
+            padding-bottom: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .form-group select, .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group select:focus, .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #2c5aa0;
+        }
+        
+        .negotiation-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .negotiation-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            font-size: 0.8rem;
+        }
+        
+        .negotiation-item input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .start-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .round-indicator {
+            background: #2c5aa0;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .role-switch {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .role-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #2c5aa0;
+            background: white;
+            color: #2c5aa0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .role-btn.active {
+            background: #2c5aa0;
+            color: white;
+        }
+        
+        .negotiation-interface {
+            display: none;
+        }
+        
+        .negotiation-interface.active {
+            display: block;
+        }
+        
+        .current-terms {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .terms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .term-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #2c5aa0;
+        }
+        
+        .term-label {
+            font-weight: bold;
+            color: #2c5aa0;
+            margin-bottom: 3px;
+            font-size: 0.85rem;
+        }
+        
+        .term-value {
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .conversation-area {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .message.user .message-avatar {
+            background: #2c5aa0;
+        }
+        
+        .message.ai .message-avatar {
+            background: #28a745;
+        }
+        
+        .message.expert .message-avatar {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .message.event .message-avatar {
+            background: #dc3545;
+        }
+        
+        .message-content {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        
+        .message.user .message-content {
+            background: #2c5aa0;
+            color: white;
+        }
+        
+        .message.expert .message-content {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+        }
+        
+        .message.event .message-content {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .input-area {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .message-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #2c5aa0;
+        }
+        
+        .quick-actions {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .quick-action-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        
+        .quick-action-btn:hover {
+            background: #2c5aa0;
+            color: white;
+            border-color: #2c5aa0;
+        }
+        
+        .send-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .strategy-tips {
+            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .tip-title {
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+        
+        .score-display {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .score-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .score-breakdown {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .score-bar {
+            width: 60px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            transition: width 0.3s;
+        }
+        
+        .expert-insights {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .expert-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .performance-chart {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .chart-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c5aa0;
+            font-size: 0.9rem;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        
+        .chart-label {
+            width: 80px;
+            font-size: 0.75rem;
+        }
+        
+        .chart-progress {
+            flex: 1;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            margin: 0 8px;
+            overflow: hidden;
+        }
+        
+        .chart-value {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 0.75rem;
+        }
+        
+        .batna-section {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .batna-title {
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .event-alert {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .setup-panel, .simulation-panel, .analytics-panel {
+                width: 100%;
+            }
+            
+            .analytics-panel {
+                border-left: none;
+                border-top: 1px solid #e9ecef;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💼 價格協商模擬器 Pro</h1>
+            <p>AI驅動的智能協商訓練平台</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="setup-panel">
+                <div class="section">
+                    <h3>🔒 私人BATNA設定</h3>
+                    <div class="batna-section">
+                        <div class="batna-title">🤐 您的最佳替代方案 (僅您可見)</div>
+                        <div class="form-group">
+                            <label>替代選擇：</label>
+                            <input type="text" id="batnaOption" placeholder="例：與ABC公司合作，報價103萬">
+                        </div>
+                        <div class="form-group">
+                            <label>替代方案價值評估：</label>
+                            <select id="batnaValue">
+                                <option value="poor">較差 (迫切需要達成協議)</option>
+                                <option value="fair">普通 (有一些談判空間)</option>
+                                <option value="good">良好 (不怕談判破裂)</option>
+                                <option value="excellent">優秀 (握有主導權)</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+                            💡 您的BATNA不會被對方知道，但會影響您的談判信心和策略建議
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>🏭 產業情境設定</h3>
+                    <div class="form-group">
+                        <label>選擇產業類型：</label>
+                        <select id="industry">
+                            <option value="manufacturing">製造業 (B2B元件採購)</option>
+                            <option value="software">軟體業 (企業解決方案)</option>
+                            <option value="logistics">物流業 (運輸服務)</option>
+                            <option value="consulting">顧問業 (專業服務)</option>
+                            <option value="retail">零售業 (供應商合作)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>協商規模：</label>
+                        <select id="scale">
+                            <option value="small">小型項目 (10-50萬)</option>
+                            <option value="medium">中型項目 (50-500萬)</option>
+                            <option value="large">大型項目 (500萬以上)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>您的角色：</label>
+                        <select id="role">
+                            <option value="buyer">採購方 (Buyer)</option>
+                            <option value="supplier">供應商 (Supplier)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>📋 協商要素選擇</h3>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 0.9rem;">選擇本次協商涉及的項目：</p>
+                    <div class="negotiation-items">
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="price" checked>
+                            <label for="price">💰 單價/總價</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="quantity">
+                            <label for="quantity">📦 數量/規模</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="payment">
+                            <label for="payment">💳 付款條件</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="delivery">
+                            <label for="delivery">🚚 交期/交付</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="quality">
+                            <label for="quality">⭐ 品質標準</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="warranty">
+                            <label for="warranty">🛡️ 保固/服務</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="volume">
+                            <label for="volume">📈 未來合作量</label>
+                        </div>
+                        <div class="negotiation-item">
+                            <input type="checkbox" id="exclusivity">
+                            <label for="exclusivity">🤝 專屬合作</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>🎯 模擬設定</h3>
+                    <div class="form-group">
+                        <label>初始預算/報價 (萬元)：</label>
+                        <input type="number" id="initialBudget" placeholder="例：100" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>期望協商輪數：</label>
+                        <select id="rounds">
+                            <option value="3">3輪 (快速談判)</option>
+                            <option value="5" selected>5輪 (標準談判)</option>
+                            <option value="7">7輪 (複雜談判)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>突發事件強度：</label>
+                        <select id="eventIntensity">
+                            <option value="none">無突發事件</option>
+                            <option value="low">輕度挑戰</option>
+                            <option value="medium" selected>中度挑戰</option>
+                            <option value="high">高強度挑戰</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="start-btn" onclick="startNegotiation()">🚀 開始協商模擬</button>
+            </div>
+            
+            <div class="simulation-panel">
+                <div id="welcome-screen">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h2>歡迎來到價格協商模擬器 Pro</h2>
+                        <p style="margin-top: 20px; font-size: 1.1rem;">
+                            🎯 <strong>協商模擬特色：</strong><br><br>
+                            🔒 <strong>隱私BATNA</strong>：您的底牌不會洩露給對方<br>
+                            🎪 <strong>多元協商</strong>：AI會靈活運用所有選定要素<br>
+                            📢 <strong>真實突發事件</strong>：改變談判局勢的重大事件<br>
+                            📊 <strong>專業評分</strong>：即時技巧分析和改進建議<br>
+                            🎓 <strong>專家指導</strong>：階段性專業建議<br>
+                            📋 <strong>學習報告</strong>：完整的個人化談判分析<br><br>
+                            
+                            <strong>📝 使用步驟：</strong><br>
+                            1️⃣ 設定您的BATNA（最佳替代方案）<br>
+                            2️⃣ 選擇產業情境和協商要素<br>
+                            3️⃣ 設定初始預算和模擬參數<br>
+                            4️⃣ 開始協商並體驗真實談判！
+                        </p>
+                        <p style="margin-top: 30px; color: #2c5aa0; font-weight: bold;">
+                            📚 使用說明：設定您的私人BATNA → 選擇產業和協商要素 → 開始模擬！<br>
+                            💡 提示：BATNA設定會影響您的談判信心和策略建議，但對方永遠不會知道！
+                        </p>
+                    </div>
+                </div>
+                
+                <div id="negotiation-screen" class="negotiation-interface">
+                    <div class="round-indicator">
+                        <span id="current-round">第 1 輪</span> 協商進行中
+                    </div>
+                    
+                    <div class="role-switch">
+                        <button class="role-btn active" id="buyer-view" onclick="switchRole('buyer')">
+                            🛒 採購方視角
+                        </button>
+                        <button class="role-btn" id="supplier-view" onclick="switchRole('supplier')">
+                            🏭 供應商視角
+                        </button>
+                    </div>
+                    
+                    <div id="event-notification" class="event-alert hidden">
+                        <strong>🚨 重大突發事件：</strong><span id="event-text"></span>
+                    </div>
+                    
+                    <div class="current-terms">
+                        <h4 style="margin-bottom: 10px; color: #2c5aa0; font-size: 1rem;">📊 當前協商條件</h4>
+                        <div class="terms-grid" id="terms-display">
+                            <!-- 動態生成條件 -->
+                        </div>
+                    </div>
+                    
+                    <div class="conversation-area" id="conversation">
+                        <!-- 對話記錄 -->
+                    </div>
+                    
+                    <div class="input-area">
+                        <h4 style="margin-bottom: 10px; color: #2c5aa0; font-size: 1rem;">💬 您的提案</h4>
+                        <textarea class="message-input" id="messageInput" placeholder="輸入您的協商提案，可以包含價格、條件調整、理由說明等...&#10;例如：我們希望將價格調整到95萬元，作為交換，我們可以承諾未來一年至少50萬個的採購量..."></textarea>
+                        
+                        <div class="quick-actions">
+                            <div class="quick-action-btn" onclick="addQuickText('價格調整')">💰 價格調整</div>
+                            <div class="quick-action-btn" onclick="addQuickText('付款條件')">💳 付款條件</div>
+                            <div class="quick-action-btn" onclick="addQuickText('交期要求')">🚚 交期要求</div>
+                            <div class="quick-action-btn" onclick="addQuickText('數量承諾')">📦 數量承諾</div>
+                            <div class="quick-action-btn" onclick="addQuickText('品質保證')">⭐ 品質保證</div>
+                            <div class="quick-action-btn" onclick="addQuickText('長期合作')">🤝 長期合作</div>
+                        </div>
+                        
+                        <button class="send-btn" onclick="sendMessage()">📤 發送提案</button>
+                    </div>
+                    
+                    <div class="strategy-tips">
+                        <div class="tip-title">💡 AI策略助手</div>
+                        <div id="current-tip">
+                            根據您的設定和當前情況，策略建議將在這裡顯示...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-panel">
+                <div class="section">
+                    <h3>📊 即時評分</h3>
+                    <div class="score-display">
+                        <div class="score-number" id="overall-score">--</div>
+                        <div>總體表現</div>
+                    </div>
+                    
+                    <div class="score-breakdown">
+                        <h4 style="margin-bottom: 10px; font-size: 0.9rem;">技巧分析</h4>
+                        <div class="score-item">
+                            <span>溝通技巧</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="communication-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="communication-score">--</span>
+                        </div>
+                        <div class="score-item">
+                            <span>策略運用</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="strategy-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="strategy-score">--</span>
+                        </div>
+                        <div class="score-item">
+                            <span>條件交換</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="exchange-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="exchange-score">--</span>
+                        </div>
+                        <div class="score-item">
+                            <span>結果達成</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="result-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="result-score">--</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>🎓 專家點評</h3>
+                    <div class="expert-insights" id="expert-feedback">
+                        <div class="expert-title">協商專家建議</div>
+                        <div id="expert-text">設定好您的BATNA和協商參數後，專家建議將會在這裡出現。記住：BATNA是您談判的重要後盾！</div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>📈 表現追蹤</h3>
+                    <div class="performance-chart">
+                        <div class="chart-title">歷史表現</div>
+                        <div class="chart-bar">
+                            <div class="chart-label">本次</div>
+                            <div class="chart-progress">
+                                <div class="score-fill" id="current-progress" style="width: 0%"></div>
+                            </div>
+                            <div class="chart-value" id="current-value">--</div>
+                        </div>
+                        <div class="chart-bar">
+                            <div class="chart-label">平均</div>
+                            <div class="chart-progress">
+                                <div class="score-fill" id="average-progress" style="width: 75%"></div>
+                            </div>
+                            <div class="chart-value">75</div>
+                        </div>
+                        <div class="chart-bar">
+                            <div class="chart-label">最佳</div>
+                            <div class="chart-progress">
+                                <div class="score-fill" id="best-progress" style="width: 88%"></div>
+                            </div>
+                            <div class="chart-value">88</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>🎯 談判風格</h3>
+                    <div id="negotiation-style" style="padding: 10px; background: white; border-radius: 6px; font-size: 0.85rem;">
+                        <strong>分析中...</strong><br>
+                        完成協商後將顯示您的談判風格特徵
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>📋 學習報告</h3>
+                    <button id="generate-report" onclick="generateLearningReport()" 
+                            style="width: 100%; padding: 8px; background: #2c5aa0; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;"
+                            disabled>
+                        生成學習報告
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRound = 1;
+        let maxRounds = 5;
+        let currentRole = 'buyer';
+        let selectedItems = [];
+        let negotiationHistory = [];
+        let currentTerms = {};
+        let lastOffer = {};
+        let scores = {
+            communication: 0,
+            strategy: 0,
+            exchange: 0,
+            result: 0,
+            overall: 0
+        };
+        let eventTriggered = false;
+        let batnaSettings = {};
+        let learningData = {
+            rounds: [],
+            strategies: [],
+            outcomes: [],
+            style: 'analyzing'
+        };
+        
+        // 突發事件模板
+        const criticalEvents = {
+            low: [
+                {
+                    trigger: 2,
+                    type: 'minor_issue',
+                    message: '對方提到上季交貨有小延遲，希望這次能改善',
+                    impact: 'dialogue'
+                }
+            ],
+            medium: [
+                {
+                    trigger: 2,
+                    type: 'market_shift',
+                    message: '重要原材料價格突然上漲12%，成本壓力增加',
+                    impact: 'strategy_change',
+                    priceAdjustment: 1.08
+                },
+                {
+                    trigger: 3,
+                    type: 'competitor_threat',
+                    message: '競爭對手剛發布新報價，比目前條件優惠15%',
+                    impact: 'pressure'
+                }
+            ],
+            high: [
+                {
+                    trigger: 2,
+                    type: 'industry_crisis',
+                    message: '行業發生重大事件，供應鏈面臨3個月短缺風險',
+                    impact: 'game_changer'
+                },
+                {
+                    trigger: 4,
+                    type: 'regulatory_change',
+                    message: '政府突然宣布新法規，需要增加25%的合規成本',
+                    impact: 'cost_restructure',
+                    priceAdjustment: 1.25
+                }
+            ]
+        };
+        
+        // 產業特定的協商重點和AI人格
+        const industryTemplates = {
+            manufacturing: {
+                name: '製造業',
+                keyFocus: ['價格', '品質標準', '交期', '未來合作量'],
+                scenarios: {
+                    buyer: '您是一家科技公司的採購經理，需要採購關鍵元件',
+                    supplier: '您是專業元件製造商，擁有技術優勢但產能有限'
+                },
+                aiPersonality: {
+                    buyer: {
+                        priceRange: 0.92,
+                        priorities: ['價格', '品質', '交期'],
+                        style: '務實且注重成本控制',
+                        negotiationElements: ['price', 'quality', 'delivery', 'warranty']
+                    },
+                    supplier: {
+                        priceRange: 1.08,
+                        priorities: ['品質', '付款條件', '數量'],
+                        style: '強調技術價值和品質保證',
+                        negotiationElements: ['price', 'payment', 'volume', 'exclusivity']
+                    }
+                }
+            },
+            software: {
+                name: '軟體業',
+                keyFocus: ['授權費用', '服務等級', '客製化程度', '支援服務'],
+                scenarios: {
+                    buyer: '您需要為公司採購企業軟體解決方案',
+                    supplier: '您是軟體公司業務代表，提供企業解決方案'
+                },
+                aiPersonality: {
+                    buyer: {
+                        priceRange: 0.88,
+                        priorities: ['價格', '功能', '支援'],
+                        style: '重視ROI和長期價值',
+                        negotiationElements: ['price', 'warranty', 'payment', 'quality']
+                    },
+                    supplier: {
+                        priceRange: 1.15,
+                        priorities: ['客製化', '支援服務', '授權模式'],
+                        style: '強調解決方案價值和服務品質',
+                        negotiationElements: ['price', 'quality', 'warranty', 'volume']
+                    }
+                }
+            },
+            logistics: {
+                name: '物流業',
+                keyFocus: ['運費', '服務範圍', '時效保證', '保險責任'],
+                scenarios: {
+                    buyer: '您需要找到可靠的物流合作夥伴',
+                    supplier: '您是物流公司業務，希望拓展新客戶'
+                },
+                aiPersonality: {
+                    buyer: {
+                        priceRange: 0.94,
+                        priorities: ['價格', '時效', '服務範圍'],
+                        style: '注重服務穩定性和成本效益',
+                        negotiationElements: ['price', 'delivery', 'warranty', 'payment']
+                    },
+                    supplier: {
+                        priceRange: 1.06,
+                        priorities: ['服務範圍', '保險', '長期合約'],
+                        style: '強調服務網路和專業能力',
+                        negotiationElements: ['price', 'delivery', 'volume', 'exclusivity']
+                    }
+                }
+            },
+            consulting: {
+                name: '顧問業',
+                keyFocus: ['顧問費率', '項目範圍', '交付時程', '成果保證'],
+                scenarios: {
+                    buyer: '您需要聘請專業顧問協助業務轉型',
+                    supplier: '您是資深顧問，提供專業諮詢服務'
+                },
+                aiPersonality: {
+                    buyer: {
+                        priceRange: 0.90,
+                        priorities: ['價格', '專業能力', '交期'],
+                        style: '重視專業價值和實際成效',
+                        negotiationElements: ['price', 'quality', 'delivery', 'warranty']
+                    },
+                    supplier: {
+                        priceRange: 1.12,
+                        priorities: ['專業認知', '項目範圍', '長期關係'],
+                        style: '強調專業價值和解決方案深度',
+                        negotiationElements: ['price', 'quality', 'volume', 'exclusivity']
+                    }
+                }
+            },
+            retail: {
+                name: '零售業',
+                keyFocus: ['進貨價格', '銷售支援', '退換貨政策', '獨家代理'],
+                scenarios: {
+                    buyer: '您是零售商採購主管，尋找新的供應商',
+                    supplier: '您是品牌商業務，希望進入新的零售通路'
+                },
+                aiPersonality: {
+                    buyer: {
+                        priceRange: 0.88,
+                        priorities: ['價格', '銷售支援', '退換政策'],
+                        style: '注重銷售表現和風險控制',
+                        negotiationElements: ['price', 'payment', 'warranty', 'volume']
+                    },
+                    supplier: {
+                        priceRange: 1.10,
+                        priorities: ['通路覆蓋', '品牌形象', '銷售量'],
+                        style: '強調品牌價值和市場機會',
+                        negotiationElements: ['price', 'volume', 'exclusivity', 'delivery']
+                    }
+                }
+            }
+        };
+        
+        function startNegotiation() {
+            // 檢查BATNA設定
+            batnaSettings = {
+                option: document.getElementById('batnaOption').value.trim(),
+                value: document.getElementById('batnaValue').value
+            };
+            
+            if (!batnaSettings.option) {
+                alert('請設定您的BATNA（最佳替代方案）後再開始協商！\n\n例如：與ABC公司合作，報價103萬');
+                return;
+            }
+            
+            // 收集基本設定
+            const industry = document.getElementById('industry').value;
+            maxRounds = parseInt(document.getElementById('rounds').value);
+            currentRole = document.getElementById('role').value;
+            
+            // 收集選中的協商項目
+            selectedItems = [];
+            const checkboxes = document.querySelectorAll('.negotiation-item input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedItems.push(cb.id);
+                }
+            });
+            
+            if (selectedItems.length === 0) {
+                alert('請至少選擇一個協商項目！');
+                return;
+            }
+            
+            // 檢查初始預算
+            const initialBudget = document.getElementById('initialBudget').value;
+            if (!initialBudget) {
+                alert('請設定初始預算/報價！');
+                return;
+            }
+            
+            // 初始化協商條件
+            initializeTerms();
+            
+            // 重置協商狀態
+            currentRound = 1;
+            eventTriggered = false;
+            negotiationHistory = [];
+            learningData = {
+                rounds: [],
+                strategies: [],
+                outcomes: [],
+                style: 'analyzing'
+            };
+            scores = {
+                communication: 0,
+                strategy: 0,
+                exchange: 0,
+                result: 0,
+                overall: 0
+            };
+            
+            // 切換到協商界面
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('negotiation-screen').style.display = 'block';
+            
+            // 設定角色視角
+            switchRole(currentRole);
+            
+            // 生成初始界面
+            updateTermsDisplay();
+            updateStrategyTip();
+            updateScoreDisplay();
+            
+            // 啟用報告生成按鈕
+            document.getElementById('generate-report').disabled = false;
+            
+            // 添加歡迎訊息
+            addWelcomeMessage();
+            
+            // 初始專家建議
+            updateExpertAdvice('opening');
+        }
+        
+        function initializeTerms() {
+            const initialBudget = document.getElementById('initialBudget').value || 100;
+            
+            currentTerms = {};
+            if (selectedItems.includes('price')) {
+                currentTerms.price = `${initialBudget} 萬元`;
+            }
+            if (selectedItems.includes('quantity')) {
+                currentTerms.quantity = '待定';
+            }
+            if (selectedItems.includes('payment')) {
+                currentTerms.payment = '月結 30 天';
+            }
+            if (selectedItems.includes('delivery')) {
+                currentTerms.delivery = '標準交期 4 週';
+            }
+            if (selectedItems.includes('quality')) {
+                currentTerms.quality = '一般品質標準';
+            }
+            if (selectedItems.includes('warranty')) {
+                currentTerms.warranty = '標準保固 12 個月';
+            }
+            if (selectedItems.includes('volume')) {
+                currentTerms.volume = '無承諾';
+            }
+            if (selectedItems.includes('exclusivity')) {
+                currentTerms.exclusivity = '非專屬';
+            }
+        }
+        
+        function addWelcomeMessage() {
+            const industry = document.getElementById('industry').value;
+            const template = industryTemplates[industry];
+            
+            const welcomeMessage = `
+                歡迎來到${template.name}的協商場景！${template.scenarios[currentRole]}
+                
+                我是${currentRole === 'buyer' ? '供應商' : '採購方'}代表，很高興與您合作。
+                
+                今天我們將就以下項目進行協商：${selectedItems.map(item => getItemLabel(item)).join('、')}
+                
+                我們期待與您建立良好的合作關係。請提出您的初始提案，我會認真考慮並給予回應。
+            `;
+            
+            addMessage('ai', welcomeMessage, 1);
+        }
+        
+        function switchRole(role) {
+            currentRole = role;
+            
+            // 更新按鈕狀態
+            document.getElementById('buyer-view').classList.toggle('active', role === 'buyer');
+            document.getElementById('supplier-view').classList.toggle('active', role === 'supplier');
+            
+            updateStrategyTip();
+        }
+        
+        function updateTermsDisplay() {
+            const termsContainer = document.getElementById('terms-display');
+            termsContainer.innerHTML = '';
+            
+            const termLabels = {
+                price: '💰 價格',
+                quantity: '📦 數量',
+                payment: '💳 付款條件',
+                delivery: '🚚 交期',
+                quality: '⭐ 品質標準',
+                warranty: '🛡️ 保固服務',
+                volume: '📈 未來合作量',
+                exclusivity: '🤝 合作模式'
+            };
+            
+            Object.keys(currentTerms).forEach(key => {
+                const termDiv = document.createElement('div');
+                termDiv.className = 'term-item';
+                termDiv.innerHTML = `
+                    <div class="term-label">${termLabels[key]}</div>
+                    <div class="term-value">${currentTerms[key]}</div>
+                `;
+                termsContainer.appendChild(termDiv);
+            });
+        }
+        
+        function addQuickText(type) {
+            const messageInput = document.getElementById('messageInput');
+            const templates = {
+                '價格調整': '關於價格部分，考慮到市場情況，我們希望能調整到 [金額]，',
+                '付款條件': '付款條件方面，基於現金流考量，我們建議 [條件]，',
+                '交期要求': '交期上我們的實際需求是 [時間]，',
+                '數量承諾': '我們願意承諾 [數量] 的採購量，以獲得更好的條件，',
+                '品質保證': '品質標準對我們很重要，我們需要 [標準] 的保證，',
+                '長期合作': '為了建立長期戰略夥伴關係，我們建議 [合作模式]，'
+            };
+            
+            const currentText = messageInput.value;
+            const newText = currentText + (currentText ? ' ' : '') + templates[type];
+            messageInput.value = newText;
+            messageInput.focus();
+        }
+        
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                alert('請輸入您的協商提案！');
+                return;
+            }
+            
+            if (currentRound > maxRounds) {
+                alert('協商已結束！');
+                return;
+            }
+            
+            // 添加用戶訊息
+            addMessage('user', message, currentRound);
+            
+            // 分析用戶提案並評分
+            const analysis = analyzeUserProposal(message);
+            lastOffer = analysis.extractedTerms;
+            
+            // 更新評分
+            updateScores(analysis);
+            
+            // 記錄學習數據
+            learningData.rounds.push({
+                round: currentRound,
+                userMessage: message,
+                analysis: analysis,
+                scores: {...scores}
+            });
+            
+            // 清空輸入
+            messageInput.value = '';
+            
+            // 檢查是否觸發突發事件
+            triggerCriticalEvent();
+            
+            // 生成AI回應
+            setTimeout(() => {
+                const aiResponse = generateEnhancedResponse(analysis);
+                addMessage('ai', aiResponse, currentRound);
+                
+                // 更新條件
+                updateTermsFromAnalysis(analysis);
+                updateTermsDisplay();
+                
+                // 更新專家建議
+                const phase = currentRound <= 2 ? 'opening' : currentRound <= 4 ? 'midgame' : 'closing';
+                updateExpertAdvice(phase);
+                
+                // 準備下一輪
+                currentRound++;
+                if (currentRound <= maxRounds) {
+                    document.getElementById('current-round').textContent = `第 ${currentRound} 輪`;
+                    updateStrategyTip();
+                } else {
+                    // 協商結束
+                    showNegotiationSummary();
+                    analyzeFinalStyle();
+                }
+            }, 1500);
+        }
+        
+        function analyzeUserProposal(message) {
+            const analysis = {
+                extractedTerms: {},
+                priceChange: null,
+                mainRequests: [],
+                reasoning: [],
+                communicationStyle: 'neutral',
+                strategyUsed: [],
+                complexityScore: 0,
+                elementsCovered: []
+            };
+            
+            // 價格分析
+            const priceMatch = message.match(/(\d+)(?:\.\d+)?萬?元?/);
+            if (priceMatch) {
+                analysis.extractedTerms.price = `${priceMatch[1]} 萬元`;
+                analysis.priceChange = parseInt(priceMatch[1]);
+                analysis.elementsCovered.push('price');
+            }
+            
+            // 更全面的條件分析
+            selectedItems.forEach(item => {
+                if (item === 'payment' && (message.includes('付款') || message.includes('月結'))) {
+                    analysis.extractedTerms.payment = '調整付款條件';
+                    analysis.elementsCovered.push('payment');
+                }
+                
+                if (item === 'delivery' && (message.includes('交期') || message.includes('週') || message.includes('天'))) {
+                    analysis.extractedTerms.delivery = '調整交期要求';
+                    analysis.elementsCovered.push('delivery');
+                }
+                
+                if (item === 'quantity' && (message.includes('數量') || message.includes('萬個') || message.includes('採購量'))) {
+                    analysis.extractedTerms.quantity = '調整數量承諾';
+                    analysis.elementsCovered.push('quantity');
+                }
+                
+                if (item === 'quality' && (message.includes('品質') || message.includes('標準') || message.includes('規格'))) {
+                    analysis.extractedTerms.quality = '提升品質要求';
+                    analysis.elementsCovered.push('quality');
+                }
+                
+                if (item === 'warranty' && (message.includes('保固') || message.includes('維修') || message.includes('服務'))) {
+                    analysis.extractedTerms.warranty = '延長保固服務';
+                    analysis.elementsCovered.push('warranty');
+                }
+                
+                if (item === 'volume' && (message.includes('未來') || message.includes('長期') || message.includes('合作量'))) {
+                    analysis.extractedTerms.volume = '長期合作承諾';
+                    analysis.elementsCovered.push('volume');
+                }
+                
+                if (item === 'exclusivity' && (message.includes('專屬') || message.includes('獨家') || message.includes('戰略'))) {
+                    analysis.extractedTerms.exclusivity = '戰略合作關係';
+                    analysis.elementsCovered.push('exclusivity');
+                }
+            });
+            
+            // 溝通風格分析
+            if (message.includes('希望') || message.includes('建議') || message.includes('考慮')) {
+                analysis.communicationStyle = 'collaborative';
+            } else if (message.includes('需要') || message.includes('要求') || message.includes('必須')) {
+                analysis.communicationStyle = 'assertive';
+            }
+            
+            // 策略分析
+            if (message.includes('交換') || message.includes('作為') || message.includes('如果')) {
+                analysis.strategyUsed.push('conditional_exchange');
+            }
+            if (message.includes('長期') || message.includes('未來') || message.includes('合作')) {
+                analysis.strategyUsed.push('relationship_building');
+            }
+            if (message.includes('市場') || message.includes('競爭') || message.includes('其他')) {
+                analysis.strategyUsed.push('market_reference');
+            }
+            if (analysis.elementsCovered.length > 2) {
+                analysis.strategyUsed.push('multi_element_negotiation');
+            }
+            
+            // 複雜度評分
+            analysis.complexityScore = analysis.elementsCovered.length * 25 + 
+                                     analysis.strategyUsed.length * 15 + 
+                                     (message.length > 100 ? 20 : 0);
+            
+            return analysis;
+        }
+        
+        function generateEnhancedResponse(analysis) {
+            const industry = document.getElementById('industry').value;
+            const oppositeRole = currentRole === 'buyer' ? 'supplier' : 'buyer';
+            const aiPersonality = industryTemplates[industry].aiPersonality[oppositeRole];
+            
+            let response = "感謝您的詳細提案，讓我逐項分析您的條件：\n\n";
+            
+            // 根據AI應該關注的要素進行回應
+            const aiElements = aiPersonality.negotiationElements;
+            const agreements = [];
+            const disagreements = [];
+            const negotiations = [];
+            const newProposals = [];
+            
+            // 分析用戶提出的條件
+            Object.keys(analysis.extractedTerms).forEach(key => {
+                const decision = makeSmartDecision(key, analysis.extractedTerms[key], aiPersonality);
+                const item = getItemLabel(key);
+                
+                if (decision === 'agree') {
+                    agreements.push(`${item}: ${analysis.extractedTerms[key]}`);
+                } else if (decision === 'disagree') {
+                    disagreements.push(`${item}: ${analysis.extractedTerms[key]}`);
+                } else {
+                    negotiations.push(`${item}: ${analysis.extractedTerms[key]}`);
+                }
+            });
+            
+            // AI主動提出其優先要素
+            aiElements.forEach(element => {
+                if (!analysis.elementsCovered.includes(element) && selectedItems.includes(element)) {
+                    newProposals.push(element);
+                }
+            });
+            
+            // 構建詳細回應
+            if (agreements.length > 0) {
+                response += "✅ **可以接受的條件：**\n";
+                agreements.forEach(item => {
+                    response += `• ${item} - 這個條件我們認為是合理的\n`;
+                });
+                response += "\n";
+            }
+            
+            if (disagreements.length > 0) {
+                response += "❌ **需要調整的條件：**\n";
+                disagreements.forEach(item => {
+                    response += `• ${item} - 這個條件對我們有挑戰\n`;
+                });
+                response += "\n";
+            }
+            
+            if (negotiations.length > 0) {
+                response += "🔄 **可以協商的條件：**\n";
+                negotiations.forEach(item => {
+                    response += `• ${item} - 這個項目我們可以進一步討論\n`;
+                });
+                response += "\n";
+            }
+            
+            // AI主動提出新要素
+            if (newProposals.length > 0) {
+                response += "💡 **我們希望討論的其他要素：**\n";
+                newProposals.forEach(element => {
+                    const suggestion = generateElementProposal(element, aiPersonality);
+                    response += `• ${getItemLabel(element)}: ${suggestion}\n`;
+                });
+                response += "\n";
+            }
+            
+            // 根據協商進度和事件調整策略
+            if (eventTriggered) {
+                response += "考慮到剛才的突發情況，我們需要在談判中更加務實和靈活。";
+            } else if (currentRound >= 3) {
+                response += "我們已經討論了幾輪，希望能儘快找到雙方都滿意的解決方案。";
+            }
+            
+            return response;
+        }
+        
+        function makeSmartDecision(item, value, aiPersonality) {
+            const isPriority = aiPersonality.priorities.includes(getItemLabel(item));
+            const randomFactor = Math.random();
+            
+            if (item === 'price') {
+                const currentPrice = parseFloat(currentTerms.price);
+                const proposedPrice = parseFloat(value);
+                const targetPrice = currentPrice * aiPersonality.priceRange;
+                
+                const priceGap = Math.abs(proposedPrice - targetPrice) / currentPrice;
+                
+                if (priceGap < 0.05) {
+                    return 'agree';
+                } else if (priceGap < 0.15) {
+                    return 'negotiate';
+                } else {
+                    return 'disagree';
+                }
+            }
+            
+            // 對於優先要素更嚴格
+            if (isPriority) {
+                return randomFactor > 0.4 ? 'negotiate' : 'agree';
+            } else {
+                return randomFactor > 0.7 ? 'agree' : 'negotiate';
+            }
+        }
+        
+        function generateElementProposal(element, aiPersonality) {
+            const proposals = {
+                payment: '我們希望能縮短付款週期到15天',
+                delivery: '我們能提供加急服務，但需要相應的條件調整',
+                quantity: '如果能確保最小訂購量，我們可以提供更好的價格',
+                quality: '我們建議提升到高品質標準，確保長期合作順利',
+                warranty: '我們願意提供延長保固，以建立您的信心',
+                volume: '希望能討論年度採購量，以便我們安排產能',
+                exclusivity: '考慮建立戰略夥伴關係，互惠互利'
+            };
+            
+            return proposals[element] || '我們希望在這個方面進行討論';
+        }
+        
+        function triggerCriticalEvent() {
+            const intensity = document.getElementById('eventIntensity').value;
+            if (intensity === 'none' || eventTriggered) return;
+            
+            const eventChance = { low: 30, medium: 50, high: 70 }[intensity];
+            if (Math.random() * 100 < eventChance) {
+                const availableEvents = criticalEvents[intensity].filter(e => e.trigger <= currentRound);
+                if (availableEvents.length > 0) {
+                    const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+                    showCriticalEvent(event);
+                    eventTriggered = true;
+                }
+            }
+        }
+        
+        function showCriticalEvent(event) {
+            document.getElementById('event-notification').classList.remove('hidden');
+            document.getElementById('event-text').textContent = event.message;
+            
+            // 添加事件訊息到對話
+            addMessage('event', `🚨 突發事件：${event.message}`, currentRound);
+            
+            // 應用事件影響
+            if (event.priceAdjustment && currentTerms.price) {
+                const currentPrice = parseFloat(currentTerms.price);
+                const newPrice = Math.round(currentPrice * event.priceAdjustment);
+                currentTerms.price = `${newPrice} 萬元`;
+                updateTermsDisplay();
+            }
+            
+            // 更新專家建議
+            updateExpertAdvice('crisis', event);
+        }
+        
+        function updateScores(analysis) {
+            // 更智能的評分系統
+            let communicationScore = 50;
+            if (analysis.communicationStyle === 'collaborative') communicationScore += 25;
+            if (analysis.communicationStyle === 'assertive') communicationScore += 15;
+            if (analysis.reasoning.length > 0) communicationScore += 15;
+            
+            let strategyScore = 40 + (analysis.strategyUsed.length * 20);
+            if (analysis.strategyUsed.includes('multi_element_negotiation')) strategyScore += 15;
+            if (analysis.strategyUsed.includes('conditional_exchange')) strategyScore += 10;
+            
+            let exchangeScore = analysis.elementsCovered.length * 20;
+            if (analysis.elementsCovered.length >= 3) exchangeScore += 20;
+            
+            let resultScore = 60;
+            if (batnaSettings.value === 'excellent') resultScore += 20;
+            else if (batnaSettings.value === 'good') resultScore += 15;
+            else if (batnaSettings.value === 'fair') resultScore += 10;
+            
+            // 平滑更新分數
+            scores.communication = Math.min(Math.round((scores.communication * 0.3 + communicationScore * 0.7)), 100);
+            scores.strategy = Math.min(Math.round((scores.strategy * 0.3 + strategyScore * 0.7)), 100);
+            scores.exchange = Math.min(Math.round((scores.exchange * 0.3 + exchangeScore * 0.7)), 100);
+            scores.result = Math.min(Math.round((scores.result * 0.3 + resultScore * 0.7)), 100);
+            scores.overall = Math.round((scores.communication + scores.strategy + scores.exchange + scores.result) / 4);
+            
+            updateScoreDisplay();
+        }
+        
+        function updateScoreDisplay() {
+            document.getElementById('overall-score').textContent = scores.overall;
+            document.getElementById('communication-score').textContent = scores.communication;
+            document.getElementById('strategy-score').textContent = scores.strategy;
+            document.getElementById('exchange-score').textContent = scores.exchange;
+            document.getElementById('result-score').textContent = scores.result;
+            
+            document.getElementById('communication-bar').style.width = scores.communication + '%';
+            document.getElementById('strategy-bar').style.width = scores.strategy + '%';
+            document.getElementById('exchange-bar').style.width = scores.exchange + '%';
+            document.getElementById('result-bar').style.width = scores.result + '%';
+            document.getElementById('current-progress').style.width = scores.overall + '%';
+            document.getElementById('current-value').textContent = scores.overall;
+        }
+        
+        function updateExpertAdvice(phase, event = null) {
+            const expertElement = document.getElementById('expert-text');
+            let advice = '';
+            
+            if (phase === 'crisis' && event) {
+                advice = `面對突發事件：「${event.message}」，建議您：1) 保持冷靜，重新評估策略 2) 尋找新的價值創造機會 3) 考慮調整您的BATNA評估。這可能是談判的轉折點。`;
+            } else if (phase === 'opening') {
+                advice = `談判開始階段，建議先建立良好關係，展現專業態度。根據您的BATNA強度（${batnaSettings.value === 'excellent' ? '優秀' : batnaSettings.value === 'good' ? '良好' : batnaSettings.value === 'fair' ? '普通' : '較差'}），${batnaSettings.value === 'excellent' || batnaSettings.value === 'good' ? '您可以較有信心地進行談判' : '建議採用更多合作性策略'}。`;
+            } else if (phase === 'midgame') {
+                advice = `中期談判階段，現在是展現策略的時候。${scores.exchange < 70 ? '嘗試提出更多要素的組合交換，不要只專注於單一條件' : '繼續保持多元化談判策略，您在條件交換方面表現不錯'}。`;
+            } else if (phase === 'closing') {
+                advice = '接近尾聲時，專注於雙方都能接受的最終方案。回顧您的BATNA價值，確保最終協議優於您的替代選擇。';
+            } else {
+                advice = '準備開始協商。記住：您的BATNA是談判的重要後盾，但對方並不知道您的底牌。';
+            }
+            
+            if (scores.communication < 70 && phase !== 'preparation') {
+                advice += " 💬 建議使用更多協作性語言，如'我們一起來看看如何解決這個問題'。";
+            }
+            if (scores.strategy < 60 && phase !== 'preparation') {
+                advice += " 🎲 嘗試運用更多談判策略，如條件交換或長期合作價值論證。";
+            }
+            
+            expertElement.textContent = advice;
+        }
+        
+        function updateTermsFromAnalysis(analysis) {
+            Object.keys(analysis.extractedTerms).forEach(key => {
+                const acceptanceRate = eventTriggered ? 0.3 : 0.6;
+                if (Math.random() > acceptanceRate) {
+                    currentTerms[key] = analysis.extractedTerms[key];
+                }
+            });
+        }
+        
+        function addMessage(sender, content, round) {
+            const conversation = document.getElementById('conversation');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            let roleText = '';
+            let avatar = '';
+            
+            if (sender === 'user') {
+                roleText = currentRole === 'buyer' ? '採購方' : '供應商';
+                avatar = currentRole === 'buyer' ? '🛒' : '🏭';
+            } else if (sender === 'ai') {
+                roleText = currentRole === 'buyer' ? '供應商' : '採購方';
+                avatar = currentRole === 'buyer' ? '🏭' : '🛒';
+            } else if (sender === 'expert') {
+                roleText = '專家';
+                avatar = '🎓';
+            } else if (sender === 'event') {
+                roleText = '突發事件';
+                avatar = '📢';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span>${roleText}</span>
+                        <span>第${round}輪</span>
+                    </div>
+                    ${content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+                </div>
+            `;
+            
+            conversation.appendChild(messageDiv);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+        
+        function analyzeFinalStyle() {
+            const strategies = learningData.rounds.flatMap(r => r.analysis.strategyUsed);
+            const avgComplexity = learningData.rounds.reduce((sum, r) => sum + r.analysis.complexityScore, 0) / learningData.rounds.length;
+            const elementsUsed = new Set(learningData.rounds.flatMap(r => r.analysis.elementsCovered));
+            
+            let style = '';
+            if (strategies.includes('multi_element_negotiation') && elementsUsed.size > 4) {
+                style = '全方位策略家 - 善於運用多元要素創造價值';
+            } else if (strategies.includes('conditional_exchange') && avgComplexity > 60) {
+                style = '條件交換專家 - 精於複雜談判策略';
+            } else if (strategies.includes('relationship_building')) {
+                style = '關係建構者 - 重視長期合作價值';
+            } else if (avgComplexity < 40) {
+                style = '直接溝通者 - 傾向簡潔有效的談判';
+            } else {
+                style = '平衡協調者 - 能靈活運用不同策略';
+            }
+            
+            learningData.style = style;
+            document.getElementById('negotiation-style').innerHTML = `<strong>${style}</strong><br><small>基於${learningData.rounds.length}輪協商的深度分析</small>`;
+        }
+        
+        function showNegotiationSummary() {
+            setTimeout(() => {
+                const effectivenesScore = calculateNegotiationEffectiveness();
+                
+                const summaryMessage = `
+                    🎉 協商完成！恭喜您完成了專業級談判訓練！
+                    
+                    **📊 最終結果分析：**
+                    ${Object.keys(currentTerms).map(key => 
+                        `• ${getItemLabel(key)}: ${currentTerms[key]}`
+                    ).join('\n')}
+                    
+                    **🏆 您的最終評分：${scores.overall}/100**
+                    **📈 談判效果：${effectivenesScore >= 80 ? '非常成功' : effectivenesScore >= 70 ? '成功' : effectivenesScore >= 60 ? '達標' : '有改進空間'}**
+                    
+                    **🎓 學習成果統計：**
+                    ✓ 完成了 ${maxRounds} 輪專業協商流程
+                    ✓ 運用了 ${selectedItems.length} 種協商要素
+                    ✓ 學會了多元條件交換技巧
+                    ✓ 掌握了BATNA運用策略
+                    ${eventTriggered ? '✓ 成功應對突發事件挑戰' : ''}
+                    
+                    點擊右側「生成學習報告」獲得完整分析！
+                `;
+                
+                addMessage('ai', summaryMessage, maxRounds);
+            }, 1000);
+        }
+        
+        function calculateNegotiationEffectiveness() {
+            let effectiveness = scores.overall;
+            
+            if (batnaSettings.value === 'excellent') {
+                effectiveness += 5;
+            }
+            
+            if (eventTriggered) {
+                effectiveness += 8;
+            }
+            
+            const elementsUsed = new Set(learningData.rounds.flatMap(r => r.analysis.elementsCovered));
+            if (elementsUsed.size >= 4) {
+                effectiveness += 5;
+            }
+            
+            return Math.min(effectiveness, 100);
+        }
+        
+        function generateLearningReport() {
+            // 計算詳細的評分邏輯
+            const totalRounds = learningData.rounds.length;
+            const avgElementsUsed = totalRounds > 0 ? 
+                learningData.rounds.reduce((sum, r) => sum + r.analysis.elementsCovered.length, 0) / totalRounds : 0;
+            const totalStrategies = new Set(learningData.rounds.flatMap(r => r.analysis.strategyUsed)).size;
+            const avgComplexity = totalRounds > 0 ? 
+                learningData.rounds.reduce((sum, r) => sum + r.analysis.complexityScore, 0) / totalRounds : 0;
+            
+            // 溝通風格分析
+            const communicationStyles = learningData.rounds.map(r => r.analysis.communicationStyle);
+            const collaborativeCount = communicationStyles.filter(s => s === 'collaborative').length;
+            const assertiveCount = communicationStyles.filter(s => s === 'assertive').length;
+            
+            const report = `
+                # 個人化談判學習報告
+                
+                ## 🎯 協商表現摘要
+                - **總體評分**：${scores.overall}/100 ${scores.overall >= 80 ? '(優秀)' : scores.overall >= 70 ? '(良好)' : scores.overall >= 60 ? '(及格)' : '(需加強)'}
+                - **溝通技巧**：${scores.communication}/100
+                - **策略運用**：${scores.strategy}/100  
+                - **條件交換**：${scores.exchange}/100
+                - **結果達成**：${scores.result}/100
+                
+                ## 📊 詳細評分邏輯分析
+                
+                ### 💬 溝通技巧評分 (${scores.communication}/100)
+                **評分依據：**
+                - 基礎分：50分
+                - 協作性溝通加分：${collaborativeCount}次 × 25分 = ${collaborativeCount * 25}分
+                - 堅定性溝通加分：${assertiveCount}次 × 15分 = ${assertiveCount * 15}分
+                - 有理由說明的輪次：${learningData.rounds.filter(r => r.analysis.reasoning.length > 0).length}次 × 15分
+                
+                **分析說明：**
+                ${scores.communication >= 80 ? '您展現出優秀的溝通技巧，善於使用協作性語言建立良好關係。' : 
+                  scores.communication >= 70 ? '您的溝通技巧良好，但可以更多運用協作性表達方式。' :
+                  scores.communication >= 60 ? '您的溝通較為直接，建議增加更多說服性和協作性元素。' :
+                  '建議加強溝通技巧，多使用「我們一起」「共同」等協作性語言。'}
+                
+                ### 🎲 策略運用評分 (${scores.strategy}/100)
+                **評分依據：**
+                - 基礎分：40分
+                - 使用策略數量：${totalStrategies}種 × 20分 = ${totalStrategies * 20}分
+                - 多元要素談判：${learningData.rounds.filter(r => r.analysis.strategyUsed.includes('multi_element_negotiation')).length}次 × 15分
+                - 條件交換策略：${learningData.rounds.filter(r => r.analysis.strategyUsed.includes('conditional_exchange')).length}次 × 10分
+                
+                **分析說明：**
+                您在${totalRounds}輪協商中運用了${totalStrategies}種不同策略，平均每輪涉及${avgElementsUsed.toFixed(1)}個協商要素。
+                ${scores.strategy >= 80 ? '策略運用非常出色，善於靈活調整談判方法。' :
+                  scores.strategy >= 70 ? '策略運用良好，但可以嘗試更多創新的談判技巧。' :
+                  scores.strategy >= 60 ? '基本策略運用合格，建議學習更多談判策略。' :
+                  '策略運用需要加強，建議多學習條件交換、市場參考等技巧。'}
+                
+                ### 🔄 條件交換評分 (${scores.exchange}/100)
+                **評分依據：**
+                - 平均每輪使用要素：${avgElementsUsed.toFixed(1)}個 × 20分 = ${Math.round(avgElementsUsed * 20)}分
+                - 多元要素獎勵：${avgElementsUsed >= 3 ? '20分（優秀）' : '0分'}
+                - 複雜度係數：${avgComplexity.toFixed(0)}分（基於提案複雜度）
+                
+                **分析說明：**
+                您平均每輪協商涉及${avgElementsUsed.toFixed(1)}個不同要素，顯示${avgElementsUsed >= 3 ? '優秀的' : avgElementsUsed >= 2 ? '良好的' : '基礎的'}多元談判能力。
+                ${scores.exchange >= 80 ? '您精通條件交換，能靈活運用多種要素創造價值。' :
+                  scores.exchange >= 70 ? '條件交換能力良好，可以嘗試更複雜的要素組合。' :
+                  scores.exchange >= 60 ? '基本掌握條件交換，建議練習同時談判更多要素。' :
+                  '建議加強條件交換技巧，不要只專注於單一條件（如價格）。'}
+                
+                ### 🎯 結果達成評分 (${scores.result}/100)
+                **評分依據：**
+                - 基礎分：60分
+                - BATNA強度加分：${batnaSettings.value === 'excellent' ? '20分（優秀）' : 
+                                   batnaSettings.value === 'good' ? '15分（良好）' : 
+                                   batnaSettings.value === 'fair' ? '10分（普通）' : '0分（較差）'}
+                - 突發事件應對：${eventTriggered ? '15分（成功應對）' : '0分（無事件）'}
+                - 談判完成度：${currentRound > maxRounds ? '10分（完整完成）' : '5分（進行中）'}
+                
+                **分析說明：**
+                您的BATNA設定為「${batnaSettings.value === 'excellent' ? '優秀' : batnaSettings.value === 'good' ? '良好' : batnaSettings.value === 'fair' ? '普通' : '較差'}」等級，
+                ${batnaSettings.value === 'excellent' || batnaSettings.value === 'good' ? 
+                  '顯示您有較強的談判籌碼，這有助於達成更好的協議。' :
+                  '建議在實際談判前培養更強的替代方案，增強談判地位。'}
+                
+                ## 🧠 談判風格分析
+                **您的談判風格**：${learningData.style}
+                
+                **風格特徵分析：**
+                - 協作性表達：${collaborativeCount}/${totalRounds}輪 (${Math.round(collaborativeCount/totalRounds*100)}%)
+                - 堅定性表達：${assertiveCount}/${totalRounds}輪 (${Math.round(assertiveCount/totalRounds*100)}%)
+                - 平均談判複雜度：${avgComplexity.toFixed(0)}分
+                - 策略多樣性：${totalStrategies}種不同策略
+                
+                ## 🔒 BATNA運用評估
+                - **BATNA設定**：${batnaSettings.option ? '✅ 已完成' : '❌ 未完成'}
+                - **BATNA強度**：${batnaSettings.value === 'excellent' ? '優秀 - 您握有強大的替代選擇' : 
+                                 batnaSettings.value === 'good' ? '良好 - 您有不錯的後備方案' : 
+                                 batnaSettings.value === 'fair' ? '普通 - 您有基本的替代選擇' : 
+                                 '較差 - 建議加強替代方案的準備'}
+                - **BATNA影響**：強度${batnaSettings.value === 'excellent' || batnaSettings.value === 'good' ? '增強了您的談判信心' : '限制了您的談判空間'}
+                
+                ## 🏆 主要優勢
+                ${scores.communication >= 80 ? '• 🗣️ 出色的溝通表達能力，善於建立協作關係' : ''}
+                ${scores.strategy >= 80 ? '• 🎯 優秀的策略思維，能靈活運用多種談判技巧' : ''}
+                ${scores.exchange >= 80 ? '• 🔄 精通條件交換，能同時處理多個談判要素' : ''}
+                ${scores.result >= 80 ? '• 🎯 能有效達成談判目標，充分利用BATNA優勢' : ''}
+                ${avgElementsUsed >= 3 ? '• 🌟 善於運用多元談判要素，不局限於單一條件' : ''}
+                ${totalStrategies >= 3 ? '• 🔧 策略運用多樣化，展現靈活的談判思維' : ''}
+                
+                ## 📈 具體改進建議
+                ${scores.communication < 70 ? `• 💬 **溝通改進**：目前${scores.communication}分，建議多使用「我們可以一起...」「您覺得...如何」等協作性語言` : ''}
+                ${scores.strategy < 70 ? `• 🎲 **策略提升**：目前${scores.strategy}分，建議學習更多談判策略，如市場參考、時間壓力運用等` : ''}
+                ${scores.exchange < 70 ? `• 🔀 **條件交換**：目前${scores.exchange}分，建議同時談判3個以上要素，練習複雜的條件組合` : ''}
+                ${scores.result < 70 ? `• 🎯 **結果達成**：目前${scores.result}分，建議加強BATNA準備，培養更強的替代方案` : ''}
+                ${avgElementsUsed < 2 ? '• 📊 **要素運用**：平均每輪只用了1-2個要素，建議嘗試同時談判更多條件' : ''}
+                ${totalStrategies < 2 ? '• 🔧 **策略多樣性**：只使用了少數策略，建議學習條件交換、關係建立等更多技巧' : ''}
+                
+                ## 🚀 下次談判行動計畫
+                
+                ### 短期目標（下次談判）
+                1. **${scores.communication < 70 ? '溝通技巧' : scores.strategy < 70 ? '策略運用' : scores.exchange < 70 ? '條件交換' : '綜合提升'}重點加強**
+                2. **至少同時談判3個以上要素**（目前平均${avgElementsUsed.toFixed(1)}個）
+                3. **嘗試新策略**：${totalStrategies < 3 ? '學習條件交換、市場參考技巧' : '深化現有策略的運用'}
+                
+                ### 中期目標（1-3個月）
+                1. **BATNA強化**：${batnaSettings.value === 'excellent' ? '保持現有優勢' : '培養更強的替代方案選擇'}
+                2. **情境練習**：嘗試不同產業、規模的談判情境
+                3. **突發事件應對**：${eventTriggered ? '繼續提升危機處理能力' : '練習高強度突發事件挑戰'}
+                
+                ### 長期目標（3-6個月）
+                1. **成為談判專家**：目標總體評分達到85分以上
+                2. **教導他人**：將學到的技巧傳授給同事或朋友
+                3. **實戰應用**：在真實商務場景中運用所學技巧
+                
+                ## 📝 本次談判統計數據
+                - **協商輪數**：${totalRounds}/${maxRounds}輪
+                - **策略種類**：${totalStrategies}種（${learningData.rounds.flatMap(r => r.analysis.strategyUsed).join('、') || '基礎策略'}）
+                - **平均要素使用**：${avgElementsUsed.toFixed(1)}個/輪
+                - **談判複雜度**：${avgComplexity.toFixed(0)}分
+                - **突發事件**：${eventTriggered ? '✅ 成功應對' : '❌ 未遇到'}
+                - **最終風格**：${learningData.style}
+                
+                ## 💡 評分公式透明化
+                - **總體分數** = (溝通 + 策略 + 交換 + 結果) ÷ 4
+                - **溝通分數** = 50 + 協作性獎勵 + 說理獎勵
+                - **策略分數** = 40 + 策略數量×20 + 特殊策略獎勵  
+                - **交換分數** = 要素數量×20 + 複雜度分數
+                - **結果分數** = 60 + BATNA獎勵 + 事件應對獎勵
+                
+                ---
+                *此報告基於${totalRounds}輪協商的詳細AI分析生成，評分邏輯完全透明化，旨在幫助您精準提升談判技巧*
+            `;
+            
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(`
+                <html>
+                <head>
+                    <title>談判學習報告 - 詳細分析</title>
+                    <style>
+                        body { 
+                            font-family: 'Microsoft JhengHei', sans-serif; 
+                            padding: 30px; 
+                            line-height: 1.8; 
+                            max-width: 900px; 
+                            margin: 0 auto;
+                            background: #f8f9fa;
+                        }
+                        .container {
+                            background: white;
+                            padding: 40px;
+                            border-radius: 15px;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                        }
+                        h1 { color: #2c5aa0; text-align: center; margin-bottom: 30px; }
+                        h2 { color: #28a745; margin-top: 35px; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+                        h3 { color: #2c5aa0; margin-top: 25px; }
+                        ul { margin-left: 25px; }
+                        li { margin-bottom: 8px; }
+                        .score { font-size: 1.2em; font-weight: bold; color: #2c5aa0; }
+                        .highlight { background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+                        .excellent { color: #28a745; font-weight: bold; }
+                        .good { color: #17a2b8; font-weight: bold; }
+                        .poor { color: #dc3545; font-weight: bold; }
+                        .formula { background: #e9ecef; padding: 15px; border-radius: 8px; font-family: monospace; }
+                        @media print {
+                            body { background: white; }
+                            .container { box-shadow: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        ${report.replace(/\n/g, '<br>')
+                                .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+                                .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+                                .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+                                .replace(/^• (.*?)$/gm, '<li>$1</li>')
+                                .replace(/\*\*(.*?)\*\*/g, '<strong class="score">$1</strong>')
+                                .replace(/- \*\*(.*?)\*\*/g, '- <span class="score">$1</span>')
+                                .replace(/（優秀）/g, '<span class="excellent">（優秀）</span>')
+                                .replace(/（良好）/g, '<span class="good">（良好）</span>')
+                                .replace(/（需加強）/g, '<span class="poor">（需加強）</span>')}
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+        
+        function getItemLabel(key) {
+            const labels = {
+                price: '價格', quantity: '數量', payment: '付款條件', delivery: '交期',
+                quality: '品質標準', warranty: '保固服務', volume: '未來合作量', exclusivity: '合作模式'
+            };
+            return labels[key] || key;
+        }
+        
+        function updateStrategyTip() {
+            const tips = [];
+            
+            if (batnaSettings.value === 'excellent') {
+                tips.push('💪 您的BATNA很強，可以更有信心談判');
+            } else if (batnaSettings.value === 'poor') {
+                tips.push('⚠️ BATNA較弱，建議採用合作策略');
+            }
+            
+            const roundAdvice = currentRound <= 2 ? '建立談判基調，展現誠意' : 
+                               currentRound <= 4 ? '尋求平衡點，進行條件交換' : '促成最終協議，展現彈性';
+            tips.push(`🎪 第${currentRound}輪建議：${roundAdvice}`);
+            
+            const industry = document.getElementById('industry').value;
+            if (industry && industryTemplates[industry]) {
+                const template = industryTemplates[industry];
+                tips.push(`🏭 ${template.name}重點：${template.keyFocus.join('、')}`);
+            }
+            
+            tips.push('🎯 記住：協商不只是價格，善用條件交換創造雙贏');
+            
+            document.getElementById('current-tip').innerHTML = tips.join('<br>• ');
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStrategyTip();
+            updateScoreDisplay();
+            updateExpertAdvice('opening');
+        });
+    </script>
+</body>
+</html>
